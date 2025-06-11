@@ -2,10 +2,10 @@ import numpy as np
 import sounddevice as sd
 
 from constants import (
-    SAMPLE_RATE, FREQ_SS, FREQ_BIT0, FREQ_BIT1, FREQ_BIT2, FREQ_BIT2_OFF
+    SAMPLE_RATE, FREQ_SS, FREQ_BIT0_1, FREQ_BIT0_2, FREQ_BIT1_1, FREQ_BIT1_2, FREQ_BIT2_0, FREQ_BIT2_1, FREQ_BIT2_2
 )
-THRESHOLD = 0.5 # Magnitude threshold for frequency detection
-EPSILON = 50    # Frequency tolerance in Hz
+THRESHOLD = 0.5
+EPSILON = 50
 
 def listen(duration):
     recording = sd.rec(int(SAMPLE_RATE * duration), samplerate=SAMPLE_RATE, channels=1, dtype='float64')
@@ -52,19 +52,31 @@ def receive():
         while True:
             freqs, magnitudes = listen(0.2)
 
-            if is_freq(freqs, magnitudes, FREQ_BIT0):
-                print("Bit0 frequency detected.")
+            if is_freq(freqs, magnitudes, FREQ_BIT0_1):
+                print("Bit0=1 frequency detected.")
                 curr_bits[0] = 1
                 continue
-            elif is_freq(freqs, magnitudes, FREQ_BIT1):
-                print("Bit1 frequency detected.")
+            elif is_freq(freqs, magnitudes, FREQ_BIT0_2):
+                print("Bit0=2 frequency detected.")
+                curr_bits[0] = 2
+                continue
+            elif is_freq(freqs, magnitudes, FREQ_BIT1_1):
+                print("Bit1=1 frequency detected.")
                 curr_bits[1] = 1
                 continue
-            elif is_freq(freqs, magnitudes, FREQ_BIT2):
+            elif is_freq(freqs, magnitudes, FREQ_BIT1_2):
+                print("Bit1=2 frequency detected.")
+                curr_bits[1] = 2
+                continue
+            elif is_freq(freqs, magnitudes, FREQ_BIT2_2):
+                print("Bit2 frequency detected.")
+                curr_bits[2] = 2
+                break
+            elif is_freq(freqs, magnitudes, FREQ_BIT2_1):
                 print("Bit2 frequency detected.")
                 curr_bits[2] = 1
                 break
-            elif is_freq(freqs, magnitudes, FREQ_BIT2_OFF):
+            elif is_freq(freqs, magnitudes, FREQ_BIT2_0):
                 print("Bit2 OFF frequency detected.")
                 break
             elif is_freq(freqs, magnitudes, FREQ_SS) and len(msg) > 0:
@@ -73,10 +85,10 @@ def receive():
                 break
 
         if not is_finished:
+            print(f"Received bits: {curr_bits}")
             curr_num = 0
             for i, bit in enumerate(curr_bits):
-                curr_num += bit * (2**i)
-            print(f"Received bits: {curr_num}")
+                curr_num += bit * (3**i)
             msg += str(curr_num)
         else:
             break

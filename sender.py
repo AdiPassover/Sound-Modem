@@ -3,7 +3,8 @@ import sounddevice as sd
 import argparse
 
 from constants import (
-    SAMPLE_RATE, SINGLE_DURATION, FREQ_BIT0, FREQ_BIT1, FREQ_SS, SS_DURATION, FREQ_BIT2, FREQ_BIT2_OFF
+    SAMPLE_RATE, SINGLE_DURATION, SS_DURATION,
+    FREQ_SS, FREQ_BIT0_1, FREQ_BIT0_2, FREQ_BIT1_1, FREQ_BIT1_2, FREQ_BIT2_0, FREQ_BIT2_1, FREQ_BIT2_2
 )
 
 def generate_tone(freq, duration=SINGLE_DURATION):
@@ -24,30 +25,34 @@ def send_bitstream(bitstream):
     print("Sending bitstream...")
     for num_str in bitstream:
         num = int(num_str)
-        bit0, bit1, bit2 = bool(num & 1), bool(num & 2), bool(num & 4)
 
-        if bit0:
-            print("Sending bit0=1...")
-            sd.play(generate_tone(FREQ_BIT0), SAMPLE_RATE)
+        bit0 = num % 3
+        bit1 = (num // 3) % 3
+        bit2 = (num // 9) % 3
+        print(f"Sending bits: {[bit0, bit1, bit2]}")
+
+        if bit0 == 1:
+            sd.play(generate_tone(FREQ_BIT0_1), SAMPLE_RATE)
+        elif bit0 == 2:
+            sd.play(generate_tone(FREQ_BIT0_2), SAMPLE_RATE)
         else:
-            print("Sending bit0=0...")
             sd.play(quiet_tone(), SAMPLE_RATE)
         sd.wait()
 
-        if bit1:
-            print("Sending bit1=1...")
-            sd.play(generate_tone(FREQ_BIT1), SAMPLE_RATE)
+        if bit1 == 1:
+            sd.play(generate_tone(FREQ_BIT1_1), SAMPLE_RATE)
+        elif bit1 == 2:
+            sd.play(generate_tone(FREQ_BIT1_2), SAMPLE_RATE)
         else:
-            print("Sending bit1=0...")
             sd.play(quiet_tone(), SAMPLE_RATE)
         sd.wait()
 
-        if bit2:
-            print("Sending bit2=1...")
-            sd.play(generate_tone(FREQ_BIT2), SAMPLE_RATE)
+        if bit2 == 1:
+            sd.play(generate_tone(FREQ_BIT2_1), SAMPLE_RATE)
+        elif bit2 == 2:
+            sd.play(generate_tone(FREQ_BIT2_2), SAMPLE_RATE)
         else:
-            print("Sending bit2=0...")
-            sd.play(generate_tone(FREQ_BIT2_OFF), SAMPLE_RATE)
+            sd.play(generate_tone(FREQ_BIT2_0), SAMPLE_RATE)
         sd.wait()
 
 
