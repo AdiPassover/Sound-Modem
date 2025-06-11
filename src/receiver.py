@@ -1,9 +1,11 @@
 import numpy as np
 import sounddevice as sd
 
-from constants import (
+from src.constants import (
     SAMPLE_RATE, FREQ_SS, FREQ_BIT0_1, FREQ_BIT0_2, FREQ_BIT1_1, FREQ_BIT1_2, FREQ_BIT2_0, FREQ_BIT2_1, FREQ_BIT2_2
 )
+from src.encodings import decode_letter
+
 THRESHOLD = 0.5
 EPSILON = 50
 
@@ -36,9 +38,7 @@ def is_freq(freqs, magnitude, target_freq, threshold=THRESHOLD, epsilon=EPSILON)
         return True
     return False
 
-msg = ""
 def receive():
-    global msg
     msg = ""
     while True:
         if listen_for_freq(FREQ_SS, 0.2):
@@ -85,22 +85,10 @@ def receive():
                 break
 
         if not is_finished:
-            print(f"Received bits: {curr_bits}")
-            curr_num = 0
-            for i, bit in enumerate(curr_bits):
-                curr_num += bit * (3**i)
-            msg += str(curr_num)
+            curr_bits = (curr_bits[0], curr_bits[1], curr_bits[2])
+            decoded_letter = decode_letter(curr_bits)
+            msg += decoded_letter
+            print(f"Received bits: {curr_bits} ({decoded_letter})")
         else:
             break
     print(f"Reception complete.\n Received bitstream: {msg}")
-
-
-
-
-
-if __name__ == "__main__":
-    print("Starting receiver...")
-    try:
-        receive()
-    except KeyboardInterrupt:
-        print(f"\nReceiver stopped by user.\n Message received: {msg}")
