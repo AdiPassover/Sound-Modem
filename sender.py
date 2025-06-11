@@ -2,7 +2,7 @@ import numpy as np
 import sounddevice as sd
 import argparse
 
-from constants import SAMPLE_RATE, BIT_DURATION, DELIM_DURATION, FREQ_BIT, FREQ_DELIM, FREQ_SS, SS_DURATION
+from constants import SAMPLE_RATE, BIT_DURATION, DELIM_DURATION, FREQ_BIT, FREQ_DELIM, FREQ_SS, SS_DURATION, FREQ_DELIM2
 
 def generate_tone(freq, duration):
     """Generate a sine wave at a specific frequency and duration."""
@@ -16,14 +16,23 @@ def send_bitstream(bitstream):
     sd.wait()
 
     print("Sending bitstream...")
-    for bit in bitstream:
-        if bit == "1":
+    for num_str in bitstream:
+        num = int(num_str)
+        bit0, bit1 = num & 1, bool(num & 2)
+
+        if bit0:
+            print("Sending bit 1...")
             sd.play(generate_tone(FREQ_BIT, BIT_DURATION), SAMPLE_RATE)
         else:
             sd.play(np.zeros(int(SAMPLE_RATE * BIT_DURATION)), SAMPLE_RATE)
         sd.wait()
 
-        sd.play(generate_tone(FREQ_DELIM, DELIM_DURATION), SAMPLE_RATE)
+        if bit1:
+            print("Sending delimiter for bit 1...")
+            sd.play(generate_tone(FREQ_DELIM2, DELIM_DURATION), SAMPLE_RATE)
+        else:
+            print("Sending delimiter for bit 0...")
+            sd.play(generate_tone(FREQ_DELIM, DELIM_DURATION), SAMPLE_RATE)
         sd.wait()
 
     print("Sending postamble delimiter...")
@@ -36,7 +45,10 @@ if __name__ == "__main__":
     parser.add_argument("bitstream", nargs="?", default="10101", help="Bitstream to send (e.g., 10101)")
     args = parser.parse_args()
 
-    if not all(bit in "01" for bit in args.bitstream):
+    if not all(bit in "0123" for bit in args.bitstream):
         raise ValueError("Bitstream must only contain 0 or 1.")
 
-    send_bitstream(args.bitstream)
+    try:
+        send_bitstream(args.bitstream)
+    except KeyboardInterrupt:
+        print("\nTransmission interrupted by user.")
