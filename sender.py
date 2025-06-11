@@ -2,7 +2,7 @@ import numpy as np
 import sounddevice as sd
 import argparse
 
-from constants import SAMPLE_RATE, BIT_DURATION, DELIM_DURATION, FREQ_BIT, FREQ_DELIM
+from constants import SAMPLE_RATE, BIT_DURATION, DELIM_DURATION, FREQ_BIT, FREQ_DELIM, FREQ_SS, SS_DURATION
 
 def generate_tone(freq, duration):
     """Generate a sine wave at a specific frequency and duration."""
@@ -11,22 +11,24 @@ def generate_tone(freq, duration):
 
 def send_bitstream(bitstream):
     print("Sending preamble delimiter...")
-    preamble = generate_tone(FREQ_DELIM, 2 * DELIM_DURATION)
-    sd.play(preamble, SAMPLE_RATE)
+    ss_tone = generate_tone(FREQ_SS, SS_DURATION)
+    sd.play(ss_tone, SAMPLE_RATE)
     sd.wait()
 
     print("Sending bitstream...")
     for bit in bitstream:
-        # Send delimiter before each bit
-        sd.play(generate_tone(FREQ_DELIM, DELIM_DURATION), SAMPLE_RATE)
-        sd.wait()
-
         if bit == "1":
             sd.play(generate_tone(FREQ_BIT, BIT_DURATION), SAMPLE_RATE)
         else:
             sd.play(np.zeros(int(SAMPLE_RATE * BIT_DURATION)), SAMPLE_RATE)
         sd.wait()
 
+        sd.play(generate_tone(FREQ_DELIM, DELIM_DURATION), SAMPLE_RATE)
+        sd.wait()
+
+    print("Sending postamble delimiter...")
+    sd.play(ss_tone, SAMPLE_RATE)
+    sd.wait()
     print("Transmission complete.")
 
 if __name__ == "__main__":
