@@ -1,12 +1,12 @@
 SAMPLE_RATE = 44100
 
-FREQ_BIT = 1050       # for bit = 1
-BIT_DURATION = 0.5    # seconds
+SINGLE_DURATION = 0.5 # seconds
 
-FREQ_DELIM = 1200     # always follows each bit
-FREQ_DELIM2 = 1300
-DELIM_DURATION = 0.5  # seconds
+FREQ_BIT0 = 1050       # for bit = 1
+FREQ_BIT1 = 1200     # always follows each bit
+FREQ_BIT2 = 1300
+FREQ_BIT2_OFF = 1400  # for bit2 = 0, acts as delimiter
 
-FREQ_SS = 900        # for start/stop
+FREQ_SS = 800        # for start/stop
 SS_DURATION = 0.7     # seconds
 

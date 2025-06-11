@@ -2,7 +2,7 @@ import numpy as np
 import sounddevice as sd
 
 from constants import (
-    SAMPLE_RATE, FREQ_BIT, FREQ_DELIM, FREQ_SS, FREQ_DELIM2
+    SAMPLE_RATE, FREQ_SS, FREQ_BIT0, FREQ_BIT1, FREQ_BIT2, FREQ_BIT2_OFF
 )
 THRESHOLD = 0.5 # Magnitude threshold for frequency detection
 EPSILON = 50    # Frequency tolerance in Hz
@@ -47,21 +47,25 @@ def receive():
 
     while True:
         is_finished = False
-        curr_bits = [0, 0]
+        curr_bits = [0, 0, 0]
 
         while True:
             freqs, magnitudes = listen(0.2)
 
-            if is_freq(freqs, magnitudes, FREQ_BIT):
-                print("Bit frequency detected. Continuing to listen for delimiter...")
+            if is_freq(freqs, magnitudes, FREQ_BIT0):
+                print("Bit0 frequency detected.")
                 curr_bits[0] = 1
                 continue
-            elif is_freq(freqs, magnitudes, FREQ_DELIM):
-                print("Delimiter frequency detected.")
-                break
-            elif is_freq(freqs, magnitudes, FREQ_DELIM2):
-                print("Alternate delimiter frequency detected. Continuing to listen for delimiter...")
+            elif is_freq(freqs, magnitudes, FREQ_BIT1):
+                print("Bit1 frequency detected.")
                 curr_bits[1] = 1
+                continue
+            elif is_freq(freqs, magnitudes, FREQ_BIT2):
+                print("Bit2 frequency detected.")
+                curr_bits[2] = 1
+                break
+            elif is_freq(freqs, magnitudes, FREQ_BIT2_OFF):
+                print("Bit2 OFF frequency detected.")
                 break
             elif is_freq(freqs, magnitudes, FREQ_SS) and len(msg) > 0:
                 print("Start/Stop frequency detected. Ending reception.")
@@ -72,6 +76,7 @@ def receive():
             curr_num = 0
             for i, bit in enumerate(curr_bits):
                 curr_num += bit * (2**i)
+            print(f"Received bits: {curr_num}")
             msg += str(curr_num)
         else:
             break
